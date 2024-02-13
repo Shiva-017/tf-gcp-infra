@@ -4,8 +4,8 @@ const { config } = require('dotenv');
 
 config();
 const db = process.env.DB_NAME;
-const user = process.env.USER;
-const password = process.env.PASSWORD;
+const user = process.env.DB_USER;
+const password = process.env.DB_PASSWORD;
 const sequelize = new Sequelize(db, user, password, databaseConfig, {
     define: {
         hooks: {

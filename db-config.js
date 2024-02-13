@@ -3,8 +3,8 @@ const { config } = require('dotenv');
 config();
 exports.databaseConfig = {
     dialect: 'mysql',
-    host: process.env.HOST,
-    port: process.env.PORT,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
     pool: {
         max: 5,
         min: 0,
