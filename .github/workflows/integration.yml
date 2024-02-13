@@ -29,8 +29,9 @@ jobs:
 
       - name: Check MySQL Service Status
         run: |
-          status=$(sudo systemctl status mysql)
+          status=$(sudo systemctl status mysql 2>&1)
           echo "$status" >> mysql_status.log
+
       
       - name: Connect to MySQL
         run: |
