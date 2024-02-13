@@ -1,39 +1,34 @@
-name: Integration Test Workflow
+  name: Integration Test Workflow
 
-on:
-  pull_request:
-    branches:
-      - main
+  on:
+    pull_request:
+      branches:
+        - main
 
-jobs:
-  connect-mysql:
-    runs-on: ubuntu-latest
+  jobs:
+    connect-mysql:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-      - name: Set up MySQL client
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
-          server-url: ${{ secrets.MYSQL_SERVER_URL }}
-          username: ${{ secrets.MYSQL_USERNAME }}
-          password: ${{ secrets.MYSQL_PASSWORD }}
-          database: ${{ secrets.MYSQL_DATABASE }}
-          port: ${{ secrets.MYSQL_PORT }}
+        - name: Set up MySQL client
+          uses: shogo82148/actions-setup-mysql@v1
+          with:
+            mysql-version: "8.0"
 
-      - name: Connect to MySQL
-        run: |
-          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
-      - name: Install dependencies
-        run: npm install
-      - name: Test Connection
-        run: |
-          npm test
-          if [ $? -eq 0 ]; then
-            echo "Database Connection Successful"
-          else
-            echo "Database Connection Failed"
-            exit 1
-          fi
+        - name: Connect to MySQL
+          run: |
+            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -P{{ secrets.MYSQL_PORT }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
+        - name: Install dependencies
+          run: npm install
+        - name: Test Connection
+          run: |
+            npm test
+            if [ $? -eq 0 ]; then
+              echo "Database Connection Successful"
+            else
+              echo "Database Connection Failed"
+              exit 1
+            fi
