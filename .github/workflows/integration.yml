@@ -25,7 +25,7 @@ jobs:
 
       - name: Connect to MySQL
         run: |
-          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -P ${{ secrets.MYSQL_PORT }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
       - name: Install dependencies
         run: npm install
       - name: Test Connection
