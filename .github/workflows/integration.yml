@@ -25,7 +25,13 @@ jobs:
       - name: Start MySQL in Safe Mode with Secret
         run: |
           sudo mysqld_safe --skip-grant-tables &
+          sleep 5 # Wait for MySQL to start
 
+      - name: Check MySQL Service Status
+        run: |
+          status=$(sudo systemctl status mysql)
+          echo "$status" >> mysql_status.log
+      
       - name: Connect to MySQL
         run: |
           mysql -u root
@@ -69,7 +75,7 @@ jobs:
             echo "Database Connection Failed"
             exit 1
           fi
-          
+
       - name: Stop MySQL Service
         run: |
           sudo systemctl stop mysql
