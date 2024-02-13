@@ -1,0 +1,28 @@
+name: Integration Test Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  connect-mysql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up MySQL client
+        uses: actions/setup-mysql@v1
+        with:
+          mysql-version: "8.0"
+          server-url: ${{ secrets.MYSQL_SERVER_URL }}
+          username: ${{ secrets.MYSQL_USERNAME }}
+          password: ${{ secrets.MYSQL_PASSWORD }}
+          database: ${{ secrets.MYSQL_DATABASE }}
+          port: ${{ secrets.MYSQL_PORT }}
+
+      - name: Connect to MySQL
+        run: |
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -P ${{ secrets.MYSQL_PORT }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES";
