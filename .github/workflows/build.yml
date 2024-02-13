@@ -4,7 +4,7 @@ jobs:
   compile-code:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ secrets.MYSQL_USERNAME }}."
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -15,7 +15,7 @@ jobs:
         run: |
           npm run build
           if [ $? -eq 0 ]; then
-            echo "Build successful" ${{ secrets.MYSQL_USERNAME }}
+            echo "Build successful" 
           else
             echo "Build failed"
             exit 1
