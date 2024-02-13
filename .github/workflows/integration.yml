@@ -1,62 +1,47 @@
-name: Healthz CI
-on: [pull_request]
+name: Integration Test Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  Run-Integration-test-for-healthz:
+  setup-mysql-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set .env file
-        run: |
-          touch .env
-          echo DB_USER="root" >> .env
-          echo DB_PASSWORD="7758015455.Abde" >> .env
-          echo DB_DATABASE="CSYE6225" >> .env
-          echo DB_HOST="localhost" >> .env
-          echo DB_PORT="3306" >> .env
-          echo PORT="3000" >> .env
-          cat .env
-          ls -la
-
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-          cache: 'npm'
-
-      - name: Set up MySQL
+      - name: Install MySQL Server
         run: |
           sudo apt-get update
-          sudo apt-get install mysql-server
-          sudo service mysql start
-          sudo mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASSWORD';"
-          sudo mysql -e "GRANT ALL PRIVILEGES ON . TO '$DB_USER'@'$DB_HOST' WITH GRANT OPTION;"
-          sudo mysql -e "FLUSH PRIVILEGES;"
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;"
+          sudo apt-get install mysql-server -y
 
-      - name: Install Dependencies
+      - name: Start MySQL Service
+        run: sudo service mysql start
+
+      - name: Set up MySQL client
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: "8.0"
+
+      - name: Set up MySQL Database and User
+        run: |
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE USER IF NOT EXISTS '${{ secrets.MYSQL_USER }}'@'%' IDENTIFIED BY '${{ secrets.MYSQL_USER_PASSWORD }}';"
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "GRANT ALL PRIVILEGES ON ${{ secrets.MYSQL_DATABASE }}.* TO '${{ secrets.MYSQL_USER }}'@'%';"
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "FLUSH PRIVILEGES;"
+          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
+
+      - name: Install dependencies
         run: npm install
 
-      - name: Configure MySQL and connect
+      - name: Test Connection
         run: |
-          # Load environment variables from .env file
-          source .env
-          
-          # Ensure the database exists and the user can connect to it
-          sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;" -u$DB_USER -p$DB_PASSWORD
-          sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_DATABASE.* TO '$DB_USER'@'localhost';" -u$DB_USER -p$DB_PASSWORD
-          sudo mysql -e "FLUSH PRIVILEGES;"
-
-      - name: Run Integration Tests
-        run: |
-          # Load environment variables from .env file
-          source .env
           npm test
           if [ $? -eq 0 ]; then
-            echo "Build successful"
+            echo "Database Connection Successful"
           else
-            echo "Build failed"
+            echo "Database Connection Failed"
             exit 1
           fi
