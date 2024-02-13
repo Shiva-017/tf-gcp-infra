@@ -26,3 +26,14 @@ jobs:
       - name: Connect to MySQL
         run: |
           mysql -h ${{ secrets.MYSQL_SERVER_URL }} -P ${{ secrets.MYSQL_PORT }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES";
+      - name: Install dependencies
+        run: npm install
+      - name: Test Connection
+        run: |
+          npm test
+          if [ $? -eq 0 ]; then
+            echo "Database Connection Successful"
+          else
+            echo "Database Connection Failed"
+            exit 1
+          fi
