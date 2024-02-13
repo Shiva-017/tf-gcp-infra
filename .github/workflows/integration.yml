@@ -21,10 +21,10 @@ jobs:
       - name: Start MySQL Service
         run: sudo service mysql start
 
-      - name: Set up MySQL client
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
+      # - name: Set up MySQL client
+      #   uses: shogo82148/actions-setup-mysql@v1
+      #   with:
+      #     mysql-version: "8.0"
 
       - name: Set up MySQL Database and User
         run: |
