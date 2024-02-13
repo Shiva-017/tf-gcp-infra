@@ -1,82 +1,34 @@
-name: Integration Test Workflow
+  name: Integration Test Workflow
 
-on:
-  pull_request:
-    branches:
-      - main
+  on:
+    pull_request:
+      branches:
+        - main
 
-jobs:
-  setup-mysql-and-test:
-    runs-on: ubuntu-latest
+  jobs:
+    connect-mysql:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-      - name: Install MySQL Server
-        run: |
-          sudo apt-get update
-          sudo apt-get install mysql-server -y
+        - name: Set up MySQL client
+          uses: shogo82148/actions-setup-mysql@v1
+          with:
+            mysql-version: "8.0"
 
-      - name: Stop MySQL Service
-        run: |
-          sudo systemctl stop mysql
-        
-      - name: Start MySQL in Safe Mode with Secret
-        run: |
-          sudo mysqld_safe --skip-grant-tables &
-          sleep 5 # Wait for MySQL to start
-
-      - name: Check MySQL Service Status
-        run: |
-          status=$(sudo systemctl status mysql 2>&1)
-          echo "$status" >> mysql_status.log
-
-      
-      - name: Connect to MySQL
-        run: |
-          mysql -u root
-      
-      - name: Update User Password
-        run: |
-          UPDATE mysql.user SET authentication_string = PASSWORD('${{ secrets.MYSQL_PASSWORD }}') WHERE User = ${{ secrets.MYSQL_USERNAME }};
-          FLUSH PRIVILEGES;
-          exit;
-
-      - name: Stop MySQL in Safe Mode
-        run: |
-          sudo pkill mysqld
-
-      - name: Start MySQL Service
-        run: |
-          sudo systemctl start mysql
-
-      - name: Check secrets
-        run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ secrets.MYSQL_USERNAME }} ${{ secrets.MYSQL_PASSWORD }} ${{ secrets.MYSQL_DATABASE }} ${{ secrets.MYSQL_SERVER_URL }}."
-      # - name: Set up MySQL client
-      #   uses: shogo82148/actions-setup-mysql@v1
-      #   with:
-      #     mysql-version: "8.0"
-
-      - name: Set up MySQL Database and User
-        run: |
+        - name: Connect to MySQL
           run: |
-            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}"
-            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Test Connection
-        run: |
-          npm test
-          if [ $? -eq 0 ]; then
-            echo "Database Connection Successful"
-          else
-            echo "Database Connection Failed"
-            exit 1
-          fi
-
-      - name: Stop MySQL Service
-        run: |
-          sudo systemctl stop mysql
+            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
+        - name: Install dependencies
+          run: npm install
+        - name: Test Connection
+          run: |
+            npm test
+            if [ $? -eq 0 ]; then
+              echo "Database Connection Successful"
+            else
+              echo "Database Connection Failed"
+              exit 1
+            fi
