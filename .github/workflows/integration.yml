@@ -21,6 +21,8 @@ jobs:
       - name: Start MySQL Service
         run: sudo service mysql start
 
+      - name: Check secrets
+        run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ secrets.MYSQL_USERNAME }} ${{ secrets.MYSQL_PASSWORD }} ${{ secrets.MYSQL_DATABASE }} ${{ secrets.MYSQL_SERVER_URL }}."
       # - name: Set up MySQL client
       #   uses: shogo82148/actions-setup-mysql@v1
       #   with:
