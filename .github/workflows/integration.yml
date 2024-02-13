@@ -18,8 +18,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install mysql-server -y
 
+      - name: Stop MySQL Service
+        run: |
+          sudo systemctl stop mysql
+        
+      - name: Start MySQL in Safe Mode with Secret
+        run: |
+          sudo mysqld_safe --skip-grant-tables &
+
+      - name: Connect to MySQL
+        run: |
+          mysql -u root
+      
+      - name: Update User Password
+        run: |
+          UPDATE mysql.user SET authentication_string = PASSWORD('${{ secrets.MYSQL_PASSWORD }}') WHERE User = ${{ secrets.MYSQL_USERNAME }};
+          FLUSH PRIVILEGES;
+          exit;
+
+      - name: Stop MySQL in Safe Mode
+        run: |
+          sudo pkill mysqld
+
       - name: Start MySQL Service
-        run: sudo service mysql start
+        run: |
+          sudo systemctl start mysql
 
       - name: Check secrets
         run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ secrets.MYSQL_USERNAME }} ${{ secrets.MYSQL_PASSWORD }} ${{ secrets.MYSQL_DATABASE }} ${{ secrets.MYSQL_SERVER_URL }}."
@@ -31,7 +54,7 @@ jobs:
       - name: Set up MySQL Database and User
         run: |
           run: |
-            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "ALTER USER '${{ secrets.MYSQL_USERNAME }}'@'${{secrets.MYSQL_SERVER_URL}}' IDENTIFIED BY '${{ secrets.MYSQL_PASSWORD }}';"
+            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}"
             mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
 
       - name: Install dependencies
@@ -46,3 +69,7 @@ jobs:
             echo "Database Connection Failed"
             exit 1
           fi
+          
+      - name: Stop MySQL Service
+        run: |
+          sudo systemctl stop mysql
