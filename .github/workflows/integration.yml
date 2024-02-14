@@ -18,9 +18,11 @@
           with:
             mysql-version: "8.0"
 
-        - name: Connect to MySQL
+        - name: Set MySQL Root Password
           run: |
-            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
+            echo "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${{ secrets.MYSQL_ROOT_PASSWORD }}';" | mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u root -p"${{ secrets.MYSQL_ROOT_PASSWORD }}"
+
+
         - name: Install dependencies
           run: npm install
         - name: Test Connection
