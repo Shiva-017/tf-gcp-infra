@@ -9,6 +9,13 @@
     connect-mysql:
       runs-on: ubuntu-latest
 
+      env:
+        DB_HOST: ${{ secrets.MYSQL_SERVER_URL }}
+        DB_USER: ${{ secrets.MYSQL_USERNAME }}
+        DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        DB_NAME: ${{ secrets.MYSQL_DATABASE }}
+        DB_PORT: 3306
+
       steps:
         - name: Checkout code
           uses: actions/checkout@v2
