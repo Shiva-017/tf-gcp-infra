@@ -30,7 +30,7 @@
 
         - name: Set MySQL Root Password
           run: |
-            mysql -u ${{secrets.MYSQL_USERNAME}} - e "ALTER USER ${{secrets.MYSQL_USERNAME}}@${{secrets.MYSQL_SERVER_URL}} IDENTIFIED BY "${{secrets.MYSQL_PASSWORD}}";"
+            mysql -u ${{secrets.MYSQL_USERNAME}} - e "ALTER USER ${{secrets.MYSQL_USERNAME}}@${{secrets.MYSQL_SERVER_URL}} IDENTIFIED BY ${{secrets.MYSQL_PASSWORD}};"
         
         - name: Exit MySQL
           run: |
