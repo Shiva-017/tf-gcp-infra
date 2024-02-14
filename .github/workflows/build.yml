@@ -15,7 +15,7 @@ jobs:
         run: |
           npm run build
           if [ $? -eq 0 ]; then
-            echo "Build successful"
+            echo "Build successful" 
           else
             echo "Build failed"
             exit 1

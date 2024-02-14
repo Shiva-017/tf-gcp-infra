@@ -1,39 +1,60 @@
-name: Integration Test Workflow
+  name: Integration Test Workflow
 
-on:
-  pull_request:
-    branches:
-      - main
+  on:
+    pull_request:
+      branches:
+        - main
 
-jobs:
-  connect-mysql:
-    runs-on: ubuntu-latest
+  jobs:
+    connect-mysql:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      env:
+        DB_HOST: ${{ secrets.MYSQL_SERVER_URL }}
+        DB_USER: ${{ secrets.MYSQL_USERNAME }}
+        DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        DB_NAME: ${{ secrets.MYSQL_DATABASE }}
+        DB_PORT: 3306
 
-      - name: Set up MySQL client
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
-          server-url: ${{ secrets.MYSQL_SERVER_URL }}
-          username: ${{ secrets.MYSQL_USERNAME }}
-          password: ${{ secrets.MYSQL_PASSWORD }}
-          database: ${{ secrets.MYSQL_DATABASE }}
-          port: ${{ secrets.MYSQL_PORT }}
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-      - name: Connect to MySQL
-        run: |
-          mysql -h ${{ secrets.MYSQL_SERVER_URL }} -P ${{ secrets.MYSQL_PORT }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" ${{ secrets.MYSQL_DATABASE }} -e "SHOW TABLES;"
-      - name: Install dependencies
-        run: npm install
-      - name: Test Connection
-        run: |
-          npm test
-          if [ $? -eq 0 ]; then
-            echo "Database Connection Successful"
-          else
-            echo "Database Connection Failed"
-            exit 1
-          fi
+        - name: Set up MySQL client
+          uses: shogo82148/actions-setup-mysql@v1
+          with:
+            mysql-version: "8.0"
+
+        - name: Set MySQL Root Password
+          run: |
+            mysql -u ${{ secrets.MYSQL_USERNAME }} --skip-password -e "ALTER USER ${{ secrets.MYSQL_USERNAME }}@${{ secrets.MYSQL_SERVER_URL }} IDENTIFIED BY '${{ secrets.MYSQL_PASSWORD }}';"
+        
+        - name: Create Database
+          run: |
+            mysql -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
+
+        - name: Echo Databases
+          run: |
+            echo "Databases in MySQL Server:"
+            mysql -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "SHOW DATABASES;"
+
+        - name: Install dependencies
+          run: npm install
+
+        - name: Connect to MySQL
+          run: |
+            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "SELECT VERSION();"
+          env:
+            MYSQL_SERVER_URL: ${{ secrets.MYSQL_SERVER_URL }}
+            MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+            MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        
+        - name: Test Connection
+          run: |
+            npm test
+            if [ $? -eq 0 ]; then
+              echo "Database Connection Successful"
+            else
+              echo "Database Connection Failed"
+              exit 1
+            fi
