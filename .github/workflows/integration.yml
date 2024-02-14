@@ -20,11 +20,16 @@
 
         - name: Set MySQL Root Password
           run: |
-            mysql -u root --skip-password -e "ALTER USER ${{ secrets.MYSQL_USERNAME }}@${{ secrets.MYSQL_SERVER_URL }} IDENTIFIED BY '${{ secrets.MYSQL_PASSWORD }}';"
+            mysql -u ${{ secrets.MYSQL_USERNAME }} --skip-password -e "ALTER USER ${{ secrets.MYSQL_USERNAME }}@${{ secrets.MYSQL_SERVER_URL }} IDENTIFIED BY '${{ secrets.MYSQL_PASSWORD }}';"
         
         - name: Create Database
           run: |
-            mysql -u root -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
+            mysql -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
+
+        - name: Echo Databases
+          run: |
+            echo "Databases in MySQL Server:"
+            mysql -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "SHOW DATABASES;"
 
         - name: Install dependencies
           run: npm install
