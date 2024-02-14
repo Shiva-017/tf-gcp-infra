@@ -20,8 +20,11 @@
 
         - name: Set MySQL Root Password
           run: |
-            echo "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${{ secrets.MYSQL_ROOT_PASSWORD }}';" | mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u root -p"${{ secrets.MYSQL_ROOT_PASSWORD }}"
-
+            mysql -u root --skip-password -e "ALTER USER ${{ secrets.MYSQL_USERNAME }}@${{ secrets.MYSQL_SERVER_URL }} IDENTIFIED BY '${{ secrets.MYSQL_PASSWORD }}';"
+        
+        - name: Create Database
+          run: |
+            mysql -u root -p"${{ secrets.MYSQL_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DATABASE }};"
 
         - name: Install dependencies
           run: npm install
