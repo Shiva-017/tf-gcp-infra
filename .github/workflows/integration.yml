@@ -33,6 +33,15 @@
 
         - name: Install dependencies
           run: npm install
+
+        - name: Connect to MySQL
+          run: |
+            mysql -h ${{ secrets.MYSQL_SERVER_URL }} -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" -e "SELECT VERSION();"
+          env:
+            MYSQL_SERVER_URL: ${{ secrets.MYSQL_SERVER_URL }}
+            MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+            MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        
         - name: Test Connection
           run: |
             npm test
