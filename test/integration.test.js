@@ -21,6 +21,12 @@ describe("Integration Test for GET/healthz", () => {
 describe("Integration Tests for User Operations", () => {
     let username;
     let password;
+
+    beforeAll(async () => {
+        // Ensure database tables are created before running tests
+        await User.sync();
+    });
+
     it("creates a new user and checks if the user is created", async () => {
         try {
             const newUser = {
