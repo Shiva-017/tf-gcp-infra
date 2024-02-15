@@ -84,5 +84,7 @@ describe("Integration Tests for User Operations", () => {
     afterAll(async () => {
         // Remove the user model
         await User.destroy({ where: { username } });
+
+        await User.sequelize.close();
     });
 });
