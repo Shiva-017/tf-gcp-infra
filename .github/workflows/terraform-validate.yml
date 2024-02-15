@@ -1,0 +1,34 @@
+name: Terraform Validate
+on: [pull_request]
+jobs:
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install terraform
+
+      # - name: Install Google Cloud SDK
+      #   run: |
+      #     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-366.0.0-linux-x86_64.tar.gz
+      #     tar -xvf google-cloud-sdk-366.0.0-linux-x86_64.tar.gz
+      #     ./google-cloud-sdk/install.sh
+
+      # - name: Authenticate with Google Cloud
+      #   run: |
+      #     gcloud auth login
+
+      - name: Initialize Terraform
+        run: |
+          cd terraform
+          terraform init
+
+      - name: Validate Terraform
+        run: |
+          cd terraform
+          terraform validate
