@@ -6,10 +6,10 @@ variable "region" {
   description = "Google Cloud region"
 }
 
-variable "vpc_name" {
-  description = "Name of the VPC"
+variable "vpc_names" {
+  description = "Names of VPCs"
+  type    = list(string)
 }
-
 variable "webapp_subnet_name" {
   description = "Name of the webapp subnet"
 }
@@ -18,3 +18,14 @@ variable "db_subnet_name" {
   description = "Name of the db subnet"
 }
 
+variable "route_name" {
+  description = "Name of the route"
+}
+
+variable "cidr_db" {
+  description = "DB CIDR"
+}
+
+variable "cidr_webapp" {
+  description = "Webapp CIDR"
+}
