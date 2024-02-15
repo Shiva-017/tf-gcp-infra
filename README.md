@@ -1,6 +1,6 @@
 # tf-gcp-infra
 
-This project aims to automate infrastructure provisioning using Terraform and Google Cloud Platform (GCP), and ensure proper functionality through integration tests.
+This project aims to automate infrastructure provisioning using Terraform and Google Cloud Platform (GCP).
 
 ## Overview
 
@@ -16,6 +16,9 @@ The infrastructure is defined as code using Terraform, ensuring reproducibility 
   - Name: `webapp-route`
   - Destination IP Range: 0.0.0.0/0
 
+## Terraform Initialize
+
+Terraform initializes your working directory and prepares it for other Terraform commands such as terraform plan or terraform apply
 
 ## Terraform Validation
 
@@ -26,20 +29,21 @@ Terraform configurations are validated to ensure correctness and prevent misconf
 To validate Terraform configurations, run the following command:
 
 ```bash
-npm run terraform-validate
+terraform init
+terraform validate
 ```
 
 ## Workflow
 
-GitHub Actions workflows are set up to automatically check the Terraform validation status and the success of integration tests.
+GitHub Actions workflows are set up to automatically check the Terraform validation status which allows for merging the branch to main.
 
 ## Prerequisites
 
 Ensure you have the following installed:
 
 - Terraform
-- Google Cloud SDK (gcloud)
+- Google Cloud SDK (gcloud) for auth
 
 ## resources
-for creating multiple vpc - https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
 for writing configuration - https://developer.hashicorp.com/terraform/language
+for creating multiple vpc - https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
