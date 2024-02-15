@@ -40,3 +40,6 @@ Ensure you have the following installed:
 - Terraform
 - Google Cloud SDK (gcloud)
 
+## resources
+for creating multiple vpc - https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
+for writing configuration - https://developer.hashicorp.com/terraform/language
