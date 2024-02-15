@@ -16,17 +16,6 @@ The infrastructure is defined as code using Terraform, ensuring reproducibility 
   - Name: `webapp-route`
   - Destination IP Range: 0.0.0.0/0
 
-## Integration Testing
-
-Integration tests are written using Jest to ensure that APIs function correctly by interacting with a MySQL server. These tests cover scenarios such as creating, updating, and retrieving user data. The database configuration variables are stored securely using GitHub Secrets and accessed via Sequelize for database connections.
-
-### Running Integration Tests
-
-To execute integration tests, run the following command:
-
-```bash
-npm test
-```
 
 ## Terraform Validation
 
@@ -48,14 +37,6 @@ GitHub Actions workflows are set up to automatically check the Terraform validat
 
 Ensure you have the following installed:
 
-- Node.js
 - Terraform
 - Google Cloud SDK (gcloud)
 
-## Setup
-
-1. Clone the repository.
-2. Set up the necessary credentials and configurations for GCP and GitHub Secrets.
-3. Modify any configurations as needed for your environment.
-4. Execute Terraform to provision the infrastructure.
-5. Run integration tests to verify functionality.

@@ -4,32 +4,38 @@ provider "google" {
 }
 
 resource "google_compute_network" "vpc" {
-  name                    = var.vpc_name
-  auto_create_subnetworks = false
+  for_each                        = { for idx, name in var.vpc_names : name => idx }
+  name                            = each.key
+  auto_create_subnetworks         = false
+  routing_mode                    = "REGIONAL"
   delete_default_routes_on_create = true
+
 }
 
 resource "google_compute_subnetwork" "webapp_subnet" {
-  name          = var.webapp_subnet_name
+  for_each      = google_compute_network.vpc
+  name          = "webapp-${each.key}"
   region        = var.region
-  network       = google_compute_network.vpc.self_link
-  ip_cidr_range = "10.0.1.0/24"
+  network       = each.value.self_link
+  ip_cidr_range = var.cidr_webapp
+
 }
 
 resource "google_compute_subnetwork" "db_subnet" {
-  name          = var.db_subnet_name
+  for_each      = google_compute_network.vpc
+  name          = "db-${each.key}"
   region        = var.region
-  network       = google_compute_network.vpc.self_link
-  ip_cidr_range = "10.0.2.0/24"
+  network       = each.value.self_link
+  ip_cidr_range = var.cidr_db
+
 }
 
 resource "google_compute_route" "webapp_route" {
-  name         = "webapp-route"
-  network      = google_compute_network.vpc.self_link
+  for_each         = google_compute_network.vpc
+  name             = "webapp-route-${each.key}"
+  network          = each.value.self_link
   next_hop_gateway = "default-internet-gateway"
-  # Apply the route only to the webapp subnet
-  priority     = 1000
-  dest_range   = "0.0.0.0/0"
-  depends_on   = [google_compute_subnetwork.webapp_subnet]
-}
+  priority         = 1000
+  dest_range       = "0.0.0.0/0"
 
+}
