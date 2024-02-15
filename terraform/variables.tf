@@ -38,3 +38,7 @@ variable "next_hop_gateway" {
   description = "next hop gateway"
 }
 
+variable "cred_file" {
+  description = "gcp service admin credentials"
+  type = string
+}
