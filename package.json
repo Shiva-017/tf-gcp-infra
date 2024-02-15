@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "jest",
-    "build": "echo 'Build Successful'"
+    "build": "echo 'Build Successful'",
+    "terraform-validate": "cd terraform && terraform validate"
   },
   "author": "",
   "license": "ISC",

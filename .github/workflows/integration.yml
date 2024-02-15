@@ -58,3 +58,6 @@
               echo "Database Connection Failed"
               exit 1
             fi
+        - name: Stop MySQL Server Connection
+          run: |
+            mysqladmin -u ${{ secrets.MYSQL_USERNAME }} -p"${{ secrets.MYSQL_PASSWORD }}" shutdown
