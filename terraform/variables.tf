@@ -29,3 +29,12 @@ variable "cidr_db" {
 variable "cidr_webapp" {
   description = "Webapp CIDR"
 }
+
+variable "route_dest" {
+  description = "route destination"
+}
+
+variable "next_hop_gateway" {
+  description = "next hop gateway"
+}
+

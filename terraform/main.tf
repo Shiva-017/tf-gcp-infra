@@ -14,7 +14,7 @@ resource "google_compute_network" "vpc" {
 
 resource "google_compute_subnetwork" "webapp_subnet" {
   for_each      = google_compute_network.vpc
-  name          = "webapp-${each.key}"
+  name          = "${var.webapp_subnet_name}-${each.key}"
   region        = var.region
   network       = each.value.self_link
   ip_cidr_range = var.cidr_webapp
@@ -23,7 +23,7 @@ resource "google_compute_subnetwork" "webapp_subnet" {
 
 resource "google_compute_subnetwork" "db_subnet" {
   for_each      = google_compute_network.vpc
-  name          = "db-${each.key}"
+  name          = "${var.db_subnet_name}-${each.key}"
   region        = var.region
   network       = each.value.self_link
   ip_cidr_range = var.cidr_db
@@ -32,10 +32,10 @@ resource "google_compute_subnetwork" "db_subnet" {
 
 resource "google_compute_route" "webapp_route" {
   for_each         = google_compute_network.vpc
-  name             = "webapp-route-${each.key}"
+  name             = "${var.route_name}-${each.key}"
   network          = each.value.self_link
-  next_hop_gateway = "default-internet-gateway"
+  next_hop_gateway = var.next_hop_gateway
   priority         = 1000
-  dest_range       = "0.0.0.0/0"
+  dest_range       = var.route_dest
 
 }
