@@ -13,3 +13,4 @@ override.tf.json
 *.tfstate
 *.tfstate.*
 */.terraform/
+.terraform.tfstate.backup
