@@ -15,6 +15,8 @@ The infrastructure is defined as code using Terraform, ensuring reproducibility 
 - Route:
   - Name: `webapp-route`
   - Destination IP Range: 0.0.0.0/0
+- FireWall Rules:
+  - 
 
 ## Terraform Initialize
 
