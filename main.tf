@@ -4,7 +4,7 @@ provider "google" {
   credentials = file(var.cred_file)
 }
 
-resource "google_compute_network" "vpc" {
+resoue "google_compute_network" "vpc" {
   for_each                        = { for idx, name in var.vpc_names : name => idx }
   name                            = each.key
   auto_create_subnetworks         = false
