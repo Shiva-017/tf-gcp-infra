@@ -1,4 +1,4 @@
-# tf-gcp-infra
+# tf-gcp-infra (for the demo)
 
 This project aims to automate infrastructure provisioning using Terraform and Google Cloud Platform (GCP).
 
