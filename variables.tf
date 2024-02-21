@@ -42,3 +42,8 @@ variable "cred_file" {
   description = "gcp service admin credentials"
   type = string
 }
+
+variable "routing_mode" {
+  description = "routing mode"
+  type = string
+}
