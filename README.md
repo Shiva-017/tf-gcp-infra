@@ -42,3 +42,19 @@ terraform init
 terraform validate
 terraform plan -var-file="values.tfvars file"     
 terraform apply -var-file="values.tfvars file" 
+```
+
+## Workflow
+
+GitHub Actions workflows are set up to automatically check the Terraform validation status which allows for merging the branch to main.
+
+## Prerequisites
+
+Ensure you have the following installed:
+
+- Terraform
+- Google Cloud SDK (gcloud) for auth
+
+## resources
+for writing configuration - https://developer.hashicorp.com/terraform/language
+for creating multiple vpc - https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
