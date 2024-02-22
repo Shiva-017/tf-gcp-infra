@@ -15,8 +15,15 @@ The infrastructure is defined as code using Terraform, ensuring reproducibility 
 - Route:
   - Name: `webapp-route`
   - Destination IP Range: 0.0.0.0/0
+- Instance:
+  - Name vpc
+  - image: image name build by packer
+  - network - under vpcs created
+  - subnetworks - under subnetworks
+  - tags: to match the firewall rules
 - FireWall Rules:
-  - 
+  - Allow-App-Port: Allows traffic on specified application port.
+  - Deny-SSH: Denies SSH traffic.
 
 ## Terraform Initialize
 
@@ -28,24 +35,10 @@ Terraform configurations are validated to ensure correctness and prevent misconf
 
 ### Running Terraform Validation
 
-To validate Terraform configurations, run the following command:
+To validate, plan and apply Terraform configurations, run the following command:
 
 ```bash
 terraform init
 terraform validate
-```
-
-## Workflow
-
-GitHub Actions workflows are set up to automatically check the Terraform validation status which allows for merging the branch to main.
-
-## Prerequisites
-
-Ensure you have the following installed:
-
-- Terraform
-- Google Cloud SDK (gcloud) for auth
-
-## resources
-for writing configuration - https://developer.hashicorp.com/terraform/language
-for creating multiple vpc - https://developer.hashicorp.com/terraform/language/meta-arguments/for_each
+terraform plan -var-file="values.tfvars file"     
+terraform apply -var-file="values.tfvars file" 
