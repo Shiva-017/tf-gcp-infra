@@ -36,7 +36,7 @@ resource "google_compute_route" "webapp_route" {
   name             = "${var.route_name}-${each.key}"
   network          = each.value.self_link
   next_hop_gateway = var.next_hop_gateway
-  priority         = 1000
+  priority         = var.route_priority
   dest_range       = var.route_dest
 
 }

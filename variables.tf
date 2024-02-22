@@ -107,3 +107,7 @@ variable "firewall_allow_tag" {
 variable "firewall_deny_tag" {
   type = string
 }
+
+variable "route_priority" {
+  type = number
+}
