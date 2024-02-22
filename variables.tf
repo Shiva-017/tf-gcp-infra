@@ -47,3 +47,63 @@ variable "routing_mode" {
   description = "routing mode"
   type = string
 }
+
+variable "machine_type" {
+  description = "machine type"
+  type = string
+}
+
+variable "instance_zone" {
+  description = "instance zone"
+  type = string
+}
+
+variable "disk_type" {
+  type = string
+}
+
+variable "image_name" {
+  type = string
+}
+
+variable "app_port" {
+  type = string
+}
+
+variable "ssh_port" {
+  type = string
+}
+
+variable "protocol" {
+  type = string
+}
+
+variable "deny_dir" {
+  type = string
+}
+
+variable "allow_dir" {
+  type = string
+}
+variable "size" {
+  type = number
+}
+variable "instance_name" {
+  type = string
+}
+
+variable "firewall_allow" {
+  type = string
+}
+
+variable "firewall_deny" {
+  type = string
+}
+
+variable "firewall_allow_tag" {
+  type = string
+}
+
+variable "firewall_deny_tag" {
+  type = string
+}
