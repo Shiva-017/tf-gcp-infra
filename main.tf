@@ -1,6 +1,6 @@
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  project     = var.project_id
+  region      = var.region
   credentials = file(var.cred_file)
 }
 
@@ -42,53 +42,54 @@ resource "google_compute_route" "webapp_route" {
 }
 
 resource "google_compute_instance" "webapp-instance" {
-  for_each = { for idx, name in var.vpc_names : name => idx }
-  name = "webapp-instance-${each.key}"
-  machine_type = "e2-micro"
-  zone = "us-east1-b"
+  for_each     = { for idx, name in var.vpc_names : name => idx }
+  name         = "${var.instance_name}-${each.key}"
+  machine_type = var.machine_type
+  zone         = var.instance_zone
   boot_disk {
     initialize_params {
-      image = "webapp-image"
-      size = 100
-      type = "pd-balanced"
+      image = var.image_name
+      size  = var.size
+      type  = var.disk_type
     }
   }
 
   network_interface {
-    network    = google_compute_network.vpc[each.key].self_link
-    subnetwork = google_compute_subnetwork.webapp_subnet[each.key].self_link
-  }
+    network    = google_compute_network.vpc[each.key].name
+    subnetwork = google_compute_subnetwork.webapp_subnet[each.key].name
+    access_config {
+    }
 
+  }
+  metadata = {
+  }
+  tags = [var.firewall_allow_tag, var.firewall_deny_tag]
 }
 
 resource "google_compute_firewall" "allow-app-port" {
   for_each = { for idx, name in var.vpc_names : name => idx }
-  name        = "allow-app-port-${each.key}"
-  description = "Allow traffic from the internet to the application port"
-  network     = google_compute_network.vpc[each.key].self_link
-  direction   = "INGRESS"
-  priority    = 1001
+  name     = "${var.firewall_allow}-${each.key}"
+  network  = google_compute_network.vpc[each.key].self_link
 
   allow {
-    protocol = "tcp"
-    ports    = ["3000"]  
+    protocol = var.protocol
+    ports    = [var.app_port]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = [var.route_dest]
+  target_tags = [var.firewall_allow_tag]
 }
 
 resource "google_compute_firewall" "deny-ssh" {
   for_each = { for idx, name in var.vpc_names : name => idx }
-  name        = "deny-ssh-${each.key}"
-  description = "Deny SSH traffic from the internet"
-  network     = google_compute_network.vpc[each.key].self_link
-  direction   = "EGRESS"  
-  priority    = 1000
+  name     = "${var.firewall_deny}-${each.key}"
+  network  = google_compute_network.vpc[each.key].self_link
 
   deny {
-    protocol = "tcp"
-    ports    = ["22"] 
+    protocol = var.protocol
+    ports    = [var.ssh_port]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = [var.route_dest]
+  target_tags = [var.firewall_deny_tag]
 }
