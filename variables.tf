@@ -111,3 +111,58 @@ variable "firewall_deny_tag" {
 variable "route_priority" {
   type = number
 }
+
+variable "db_name" {
+  type = string
+}
+
+variable "db_user" {
+  type = string
+}
+
+variable "db_host" {
+  type = string
+}
+
+variable "db_port" {
+  type = string
+}
+variable "startup_script" {
+  type = string
+}
+
+variable "address_type" {
+  type = string  
+}
+
+variable "purpose" {
+  type = string
+}
+
+variable "prefix_length" {
+  type = number
+}
+
+variable "service" {
+  type = string
+}
+
+variable "database_version" {
+  type = string
+}
+
+variable "db_tier" {
+  type = string
+}
+variable "db_disk_type" {
+  type = string
+}
+variable "db_availability" {
+  type = string
+}
+variable "start_time" {
+  type = string
+}
+variable "tlr_days" {
+  type = string
+}
