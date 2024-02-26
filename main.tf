@@ -39,6 +39,7 @@ resource "google_compute_route" "webapp_route" {
 
 # Random password generation for the Cloud SQL user
 resource "random_password" "password" {
+  for_each     = { for idx, name in var.vpc_names : name => idx }
   length           = 16
   special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
@@ -67,8 +68,8 @@ resource "google_compute_instance" "webapp-instance" {
    metadata_startup_script = templatefile("startup.tpl", {
     db_name     = var.db_name,
     db_user     = var.db_user,
-    db_password = random_password.password.result,
-    db_host     = var.db_host,
+    db_password = random_password.password[each.key].result,
+    db_host     = google_sql_database_instance.default[each.key].private_ip_address,
     db_port     = var.db_port
   })
 
@@ -160,7 +161,7 @@ resource "google_sql_user" "webapp_user" {
    for_each = { for idx, name in var.vpc_names : name => idx }
   name     = var.db_user
   instance = google_sql_database_instance.default[each.key].name
-  password = random_password.password.result
+  password = random_password.password[each.key].result
 }
  
 # Database within the Cloud SQL instance
