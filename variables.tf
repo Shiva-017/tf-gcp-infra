@@ -120,17 +120,9 @@ variable "db_user" {
   type = string
 }
 
-variable "db_host" {
-  type = string
-}
-
 variable "db_port" {
   type = string
 }
-variable "startup_script" {
-  type = string
-}
-
 variable "address_type" {
   type = string  
 }
