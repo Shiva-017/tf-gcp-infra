@@ -158,3 +158,6 @@ variable "start_time" {
 variable "tlr_days" {
   type = string
 }
+variable "deletion_policy" {
+  type = string
+}
