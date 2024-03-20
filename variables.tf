@@ -6,9 +6,9 @@ variable "region" {
   description = "Google Cloud region"
 }
 
-variable "vpc_names" {
-  description = "Names of VPCs"
-  type    = list(string)
+variable "vpc_name" {
+  description = "Name of VPC"
+  type    = string
 }
 variable "webapp_subnet_name" {
   description = "Name of the webapp subnet"
@@ -159,5 +159,41 @@ variable "tlr_days" {
   type = string
 }
 variable "deletion_policy" {
+  type = string
+}
+
+variable "scopes" {
+  type = string
+}
+
+variable "domain" {
+  type = string
+}
+
+variable "recordType" {
+  type = string
+}
+
+variable "ttl" {
+  type = number
+}
+
+variable "managed_zone" {
+  type = string
+}
+
+variable "static_ip_name" {
+  type = string
+}
+
+variable "loggingAdmin" {
+  type = string
+}
+
+variable "metricsWriter" {
+  type = string
+}
+
+variable "monitoring_account_id" {
   type = string
 }
