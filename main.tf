@@ -45,6 +45,14 @@ resource "google_service_account" "webapp_service_account" {
   display_name = "WebApp Monitoring Service Account"
 }
 
+resource "google_project_iam_binding" "monitoring_logs_binding" {
+  project = var.project_id
+  role    = var.monitoring_logs_binding
+
+  members = [
+    "serviceAccount:${google_service_account.webapp_service_account.email}"]
+}
+
 resource "google_project_iam_member" "webapp_service_account_logging_admin" {
   project = var.project_id
   role    = var.loggingAdmin
@@ -106,6 +114,8 @@ resource "google_compute_firewall" "allow-app-port" {
   source_ranges = [var.route_dest]
   target_tags = [var.firewall_allow_tag]
 }
+
+
 
 resource "google_compute_firewall" "deny-ssh" {
   name     = "${var.firewall_deny}-${var.vpc_name}"

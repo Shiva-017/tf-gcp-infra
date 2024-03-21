@@ -197,3 +197,7 @@ variable "metricsWriter" {
 variable "monitoring_account_id" {
   type = string
 }
+
+variable "monitoring_logs_binding" {
+  type = string
+}
