@@ -201,3 +201,102 @@ variable "monitoring_account_id" {
 variable "monitoring_logs_binding" {
   type = string
 }
+
+variable "MX_values" {
+  type = list(string)
+}
+
+variable "TXT1" {
+  type = list(string)
+}
+
+variable "TXT2" {
+  type = list(string)
+}
+
+variable "TXT2_Domain" {
+  type = string
+}
+
+variable "CNAME_value" {
+  type = list(string)
+}
+
+variable "pub_sub_topic" {
+  type = string
+}
+variable "pub_sub_sub" {
+  type = string
+}
+
+variable "cloud_fn_acc_id" {
+  type = string
+}
+
+variable "pub_sub_subscriber" {
+  type = string
+}
+
+variable "pub_sub_publisher" {
+  type = string
+}
+
+variable "secret_accessor" {
+  type = string
+}
+
+variable "function_invoker" {
+  type = string
+}
+
+variable "sql_client" {
+  type = string
+}
+
+variable "sa_creator" {
+  type = string
+}
+
+variable "storage_bucket_name" {
+  type = string
+}
+
+variable "storage_object_name" {
+  type = string
+}
+
+variable "cloud_fn_name" {
+  type = string
+}
+
+variable "cloud_fn_runtime" {
+  type = string
+}
+
+variable "cloud_fn_trigger" {
+  type = string
+}
+
+variable "cloudfn_entry" {
+  type = string
+}
+
+variable "instance_connection_name" {
+  type = string
+}
+
+variable "mailgun_api" {
+  type = string
+}
+
+variable "socket_path" {
+  type = string
+}
+
+variable "connector_name" {
+  type = string
+}
+
+variable "connector_cidr" {
+  type = string
+}

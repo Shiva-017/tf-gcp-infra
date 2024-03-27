@@ -16,6 +16,7 @@ DB_USER=${db_user}
 DB_PASSWORD="${db_password}"
 DB_HOST="${db_host}"
 DB_PORT=${db_port}
+NODE_ENV=prod
 EOF
 
 # Change ownership of the .env file
