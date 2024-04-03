@@ -300,3 +300,187 @@ variable "connector_name" {
 variable "connector_cidr" {
   type = string
 }
+
+variable "subnetwork_proxy_role" {
+  type = string
+}
+
+variable "subnetwork_proxy_purpose" {
+  type = string
+}
+
+variable "subnetwork_proxy_cidr" {
+  type = string
+}
+
+variable "subnetwork_proxy_name" {
+  type = string
+}
+
+variable "forwarding_rule_lb_scheme" {
+  type = string
+}
+
+variable "forwarding_rule_port_range" {
+  type = string
+}
+
+variable "forwarding_rule_network_tier" {
+  type = string
+}
+
+variable "forwarding_rule_name" {
+  type = string
+}
+
+variable "https_proxy_name" {
+  type = string
+}
+
+variable "ssl_certificate_name" {
+  type = string
+}
+
+variable "url_map_name" {
+  type = string
+}
+
+variable "backend_service_balancing_mode" {
+  type = string
+}
+
+variable "backend_service_lb_scheme" {
+  type = string
+}
+
+variable "backend_service_protocol" {
+  type = string
+}
+
+variable "backend_service_port_name" {
+  type = string
+}
+
+variable "backend_service_capacity_scaler" {
+  type = number
+}
+
+variable "backend_service_name" {
+  type = string
+}
+
+variable "network_direction" {
+  type = string
+}
+
+variable "allow_proxy_fw_name" {
+  type = string
+}
+
+variable "allow_proxy_fw_source_range" {
+  type = list(string)
+}
+
+variable "allow_proxy_fw_network_direction" {
+  type = string
+}
+
+variable "fw_target_tags" {
+  type = list(string)
+}
+
+variable "allow_proxy_fw_priority" {
+  type = number
+}
+
+variable "default_fw_name" {
+  type = string
+}
+
+variable "default_fw_source_range" {
+  type = list(string)
+}
+
+variable "default_fw_network_direction" {
+  type = string
+}
+
+variable "default_fw_priority" {
+  type = number
+}
+
+variable "cpu_utilization_target" {
+  type = number
+}
+
+variable "min_replicas" {
+  type = number
+}
+
+variable "max_replicas" {
+  type = number
+}
+
+variable "cooldown_period" {
+  type = number
+}
+
+variable "autoscaler_name" {
+  type = string
+}
+
+variable "instance_group_manager_name" {
+  type = string
+}
+
+variable "instance_group_manager_named_port_name" {
+  type = string
+}
+
+variable "instance_group_manager_port" {
+  type = number
+}
+
+variable "instance_group_manager_version_name" {
+  type = string
+}
+
+variable "instance_group_manager_base_instance_name" {
+  type = string
+}
+
+variable "instance_GM_DP_target_shape" {
+  type = string
+}
+
+variable "initial_delay_Sec" {
+  type = number
+}
+
+variable "health_check_name" {
+  type = string
+}
+
+variable "health_check_req_path" {
+  type = string
+}
+
+variable "health_check_req_port" {
+  type = number
+}
+
+variable "check_interval_sec" {
+  type = number
+}
+
+variable "timeout_sec" {
+  type = number
+}
+
+variable "instance_template_desc" {
+  type = string
+}
+
+variable "on_host_maintenance" {
+  type = string
+}
