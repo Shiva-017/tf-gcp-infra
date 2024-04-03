@@ -65,70 +65,70 @@ resource "google_project_iam_member" "webapp_service_account_monitoring_metric_w
   member  = "serviceAccount:${google_service_account.webapp_service_account.email}"
 }
 
-resource "google_compute_instance" "webapp-instance" {
-  name         = "${var.instance_name}-${var.vpc_name}"
-  machine_type = var.machine_type
-  zone         = var.instance_zone
-  boot_disk {
-    initialize_params {
-      image = var.image_name
-      size  = var.size
-      type  = var.disk_type
-    }
-  }
+# resource "google_compute_instance" "webapp-instance" {
+#   name         = "${var.instance_name}-${var.vpc_name}"
+#   machine_type = var.machine_type
+#   zone         = var.instance_zone
+#   boot_disk {
+#     initialize_params {
+#       image = var.image_name
+#       size  = var.size
+#       type  = var.disk_type
+#     }
+#   }
 
-  network_interface {
-    network    = google_compute_network.vpc.name
-    subnetwork = google_compute_subnetwork.webapp_subnet.name
-    access_config {
-      nat_ip = google_compute_address.static_ip.address
-    }
+#   network_interface {
+#     network    = google_compute_network.vpc.name
+#     subnetwork = google_compute_subnetwork.webapp_subnet.name
+#     access_config {
+#       nat_ip = google_compute_address.static_ip.address
+#     }
 
-  }
-  allow_stopping_for_update = true
-  service_account {
-    email  = google_service_account.webapp_service_account.email
-    scopes = [var.scopes]
-  }
-   metadata_startup_script = templatefile("startup.tpl", {
-    db_name     = var.db_name,
-    db_user     = var.db_user,
-    db_password = random_password.password.result,
-    db_host     = google_sql_database_instance.default.private_ip_address,
-    db_port     = var.db_port
-  })
+#   }
+#   allow_stopping_for_update = true
+#   service_account {
+#     email  = google_service_account.webapp_service_account.email
+#     scopes = [var.scopes]
+#   }
+#    metadata_startup_script = templatefile("startup.tpl", {
+#     db_name     = var.db_name,
+#     db_user     = var.db_user,
+#     db_password = random_password.password.result,
+#     db_host     = google_sql_database_instance.default.private_ip_address,
+#     db_port     = var.db_port
+#   })
 
-  tags = [var.firewall_allow_tag, var.firewall_deny_tag]
-  depends_on = [ random_password.password, google_sql_database.webapp, google_compute_address.static_ip ]
-}
+#   tags = [var.firewall_allow_tag, var.firewall_deny_tag]
+#   depends_on = [ random_password.password, google_sql_database.webapp, google_compute_address.static_ip ]
+# }
 
-resource "google_compute_firewall" "allow-app-port" {
-  name     = "${var.firewall_allow}-${var.vpc_name}"
-  network  = google_compute_network.vpc.self_link
+# resource "google_compute_firewall" "allow-app-port" {
+#   name     = "${var.firewall_allow}-${var.vpc_name}"
+#   network  = google_compute_network.vpc.self_link
 
-  allow {
-    protocol = var.protocol
-    ports    = [var.app_port]
-  }
+#   allow {
+#     protocol = var.protocol
+#     ports    = [var.app_port]
+#   }
 
-  source_ranges = [var.route_dest]
-  target_tags = [var.firewall_allow_tag]
-}
+#   source_ranges = [var.route_dest]
+#   target_tags = [var.firewall_allow_tag]
+# }
 
 
 
-resource "google_compute_firewall" "deny-ssh" {
-  name     = "${var.firewall_deny}-${var.vpc_name}"
-  network  = google_compute_network.vpc.self_link
+# resource "google_compute_firewall" "deny-ssh" {
+#   name     = "${var.firewall_deny}-${var.vpc_name}"
+#   network  = google_compute_network.vpc.self_link
 
-  deny {
-    protocol = var.protocol
-    ports    = [var.ssh_port]
-  }
+#   deny {
+#     protocol = var.protocol
+#     ports    = [var.ssh_port]
+#   }
 
-  source_ranges = [var.route_dest]
-  target_tags = [var.firewall_deny_tag]
-}
+#   source_ranges = [var.route_dest]
+#   target_tags = [var.firewall_deny_tag]
+# }
 
 resource "google_compute_global_address" "default" {
   provider     = google
@@ -198,15 +198,6 @@ resource "google_compute_address" "static_ip" {
   region = var.region
 }
 
-# A name
-resource "google_dns_record_set" "a_record" {
-  name = var.domain
-  type = var.recordType
-  ttl  = var.ttl
-  managed_zone = var.managed_zone
-  rrdatas = [google_compute_instance.webapp-instance.network_interface[0].access_config[0].nat_ip]
-  depends_on = [ google_compute_instance.webapp-instance ]
-}
 
 # MX record for the domain
 resource "google_dns_record_set" "mx_record" {
@@ -360,3 +351,201 @@ resource "google_vpc_access_connector" "default" {
   ip_cidr_range = var.connector_cidr
 }
 
+# Webapp Instance template
+resource "google_compute_region_instance_template" "default" {
+  name        = "${var.instance_name}-${var.vpc_name}"
+  description = var.instance_template_desc
+  provider = google
+  project = var.project_id
+
+  tags = var.fw_target_tags
+  machine_type         = var.machine_type
+  # can_ip_forward       = false
+  region = var.region
+
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = var.on_host_maintenance
+  }
+
+  disk {
+    boot        = true
+    auto_delete = true
+    disk_type   = var.disk_type
+    disk_size_gb = var.size
+    source_image = var.image_name
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc.name
+    subnetwork = google_compute_subnetwork.webapp_subnet.name
+  }
+
+
+  service_account {
+    email  = google_service_account.webapp_service_account.email
+    scopes = [var.scopes]
+  }
+
+  metadata_startup_script = templatefile("startup.tpl", {
+    db_name     = var.db_name,
+    db_user     = var.db_user,
+    db_password = random_password.password.result,
+    db_host     = google_sql_database_instance.default.private_ip_address,
+    db_port     = var.db_port
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  depends_on = [ random_password.password, google_sql_database.webapp, google_compute_address.static_ip ]
+}
+
+
+# health check
+resource "google_compute_region_health_check" "default" {
+  name     = var.health_check_name
+  region = var.region
+  provider = google
+  check_interval_sec = var.check_interval_sec
+  timeout_sec = var.timeout_sec
+  http_health_check {
+    request_path = var.health_check_req_path
+    port = var.health_check_req_port
+  }
+}
+
+
+# Regional compute instance group manager
+resource "google_compute_region_instance_group_manager" "default" {
+  name     = var.instance_group_manager_name
+  provider = google
+  region = var.region
+  
+  named_port {
+    name = var.instance_group_manager_named_port_name
+    port = var.instance_group_manager_port
+  }
+  
+  version {
+    instance_template = google_compute_region_instance_template.default.id
+    name              = var.instance_group_manager_version_name
+  }
+  base_instance_name = var.instance_group_manager_base_instance_name
+  distribution_policy_target_shape = var.instance_GM_DP_target_shape
+  auto_healing_policies {
+    health_check      = google_compute_region_health_check.default.self_link
+    initial_delay_sec = var.initial_delay_Sec
+  }
+}
+
+
+# Compute autoscaler
+resource "google_compute_region_autoscaler" "webapp_autoscaler" {
+  name   = var.autoscaler_name
+  region = var.region
+  provider = google
+  target = google_compute_region_instance_group_manager.default.self_link
+
+  autoscaling_policy {
+    min_replicas    = var.min_replicas
+    max_replicas    = var.max_replicas
+    cooldown_period = var.cooldown_period
+
+    cpu_utilization {
+      target =  var.cpu_utilization_target # 5% CPU usage
+    }
+  }
+  depends_on = [ google_compute_region_instance_group_manager.default ]
+}
+
+# Update firewall rules to allow only load balancer access
+resource "google_compute_firewall" "default" {
+  name = var.default_fw_name
+  allow {
+    protocol = "tcp"
+  }
+  direction     = var.default_fw_network_direction
+  network       = google_compute_network.vpc.id
+  priority      = var.default_fw_priority
+  source_ranges = var.default_fw_source_range
+  target_tags   = var.fw_target_tags
+}
+
+resource "google_compute_firewall" "allow_proxy" {
+  name = var.allow_proxy_fw_name
+  allow {
+    ports    = [var.forwarding_rule_port_range]
+    protocol = "tcp"
+  }
+  allow {
+    ports    = [var.app_port]
+    protocol = "tcp"
+  }
+  direction     = var.allow_proxy_fw_network_direction
+  network       = google_compute_network.vpc.id
+  priority      = var.allow_proxy_fw_priority
+  source_ranges = var.allow_proxy_fw_source_range
+  target_tags   = var.fw_target_tags
+}
+
+resource "google_compute_region_backend_service" "webapp_backend_service" {
+  name             = var.backend_service_name
+  region           = var.region
+  provider = google
+  health_checks    = [google_compute_region_health_check.default.id]
+  load_balancing_scheme = var.backend_service_lb_scheme
+  protocol         = var.backend_service_protocol
+  port_name = var.backend_service_port_name
+
+  backend {
+    group = google_compute_region_instance_group_manager.default.instance_group
+    balancing_mode = var.backend_service_balancing_mode
+    capacity_scaler = var.backend_service_capacity_scaler
+  }
+}
+
+resource "google_compute_region_url_map" "webapp_url_map" {
+  name            = var.url_map_name
+  region = var.region
+  provider = google
+  default_service = google_compute_region_backend_service.webapp_backend_service.self_link
+}
+
+resource "google_compute_region_target_https_proxy" "webapp_https_proxy" {
+  name             = var.https_proxy_name
+  region = var.region
+  url_map          = google_compute_region_url_map.webapp_url_map.self_link
+  ssl_certificates = [var.ssl_certificate_name]
+}
+
+resource "google_compute_forwarding_rule" "webapp_https_forwarding_rule" {
+  name       = var.forwarding_rule_name
+  region = var.region
+  network = google_compute_network.vpc.self_link
+  network_tier = var.forwarding_rule_network_tier
+  load_balancing_scheme = var.forwarding_rule_lb_scheme
+  target     = google_compute_region_target_https_proxy.webapp_https_proxy.self_link
+  port_range = var.forwarding_rule_port_range
+  depends_on = [google_compute_subnetwork.proxy]
+}
+
+# Update A record to point to the load balancer IP
+resource "google_dns_record_set" "webapp_a_record" {
+  name         = var.domain
+  type         = "A"
+  ttl          = var.ttl
+  managed_zone = var.managed_zone
+  rrdatas      = [google_compute_forwarding_rule.webapp_https_forwarding_rule.ip_address]
+}
+
+resource "google_compute_subnetwork" "proxy" {
+  provider = google
+  name          = var.subnetwork_proxy_name
+  ip_cidr_range = var.subnetwork_proxy_cidr
+  region        = var.region
+  network       = google_compute_network.vpc.id
+  purpose       = var.subnetwork_proxy_purpose
+  role          = var.subnetwork_proxy_role
+}
