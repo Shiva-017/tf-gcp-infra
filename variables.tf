@@ -492,3 +492,59 @@ variable "service_account" {
 variable "sb_account_id" {
   type = string
 }
+
+variable "kms_role" {
+  type = string
+}
+
+variable "sql_password_secret_id" {
+  type = string
+}
+
+variable "sql_instance_secret_id" {
+  type = string
+}
+
+variable "sql_user_secret_id" {
+  type = string
+}
+
+variable "sql_database_secret_id" {
+  type = string
+}
+
+variable "sql_port_secret_id" {
+  type = string
+}
+
+variable "compute_engine_service_account" {
+  type = string
+}
+
+variable "kms_rotation" {
+  type = string
+}
+
+variable "keyring_name" {
+  type = string
+}
+
+variable "VM_KMS_name" {
+  type = string
+}
+
+variable "SB_KMS_name" {
+  type = string
+}
+
+variable "SQL_KMS_name" {
+  type = string
+}
+
+variable "cloud_fn_account_role" {
+  type = string
+}
+
+variable "SQL_service_id_service" {
+  type = string
+}
