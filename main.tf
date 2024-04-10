@@ -157,7 +157,7 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 
 resource "google_project_service_identity" "gcp_sa_cloud_sql" {
   provider = google-beta
-  service  = "sqladmin.googleapis.com"
+  service  = var.SQL_service_id_service
 }
 
 
@@ -262,7 +262,7 @@ resource "google_pubsub_subscription" "verify_email_subscription" {
 # service account: cloud function
 resource "google_service_account" "cloud_function_sa" {
   account_id   = var.cloud_fn_acc_id
-  display_name = "Cloud Function Mailgun Service Account"
+  display_name = var.cloud_fn_account_role
 }
 
 # role: pub/sub subscriber
@@ -574,14 +574,14 @@ resource "google_compute_subnetwork" "proxy" {
 }
 
 resource "google_kms_key_ring" "keyring" {
-  name     = "keyring-09"
+  name     = var.keyring_name
   location = var.region
 }
  
 resource "google_kms_crypto_key" "vm-key" {
-  name            = "VM-CMEK"
+  name            = var.VM_KMS_name
   key_ring        = google_kms_key_ring.keyring.id
-  rotation_period = "2592000s"
+  rotation_period = var.kms_rotation
    lifecycle {
     prevent_destroy = true
   }
@@ -589,18 +589,18 @@ resource "google_kms_crypto_key" "vm-key" {
  
  
 resource "google_kms_crypto_key" "sb-key" {
-  name            = "SB-CMEK"
+  name            = var.SB_KMS_name
   key_ring        = google_kms_key_ring.keyring.id
-  rotation_period = "2592000s"
+  rotation_period = var.kms_rotation
    lifecycle {
     prevent_destroy = true
   }
 }
  
 resource "google_kms_crypto_key" "sql-key" {
-  name            = "SQL-CMEK"
+  name            = var.SQL_KMS_name
   key_ring        = google_kms_key_ring.keyring.id
-  rotation_period = "2592000s"
+  rotation_period = var.kms_rotation
    lifecycle {
     prevent_destroy = true
   }
@@ -609,9 +609,9 @@ resource "google_kms_crypto_key" "sql-key" {
 
 resource "google_kms_crypto_key_iam_binding" "crypto_key_vm" {
   crypto_key_id = google_kms_crypto_key.vm-key.id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  role          = var.kms_role
 
-  members = ["serviceAccount:${"service-1040902669763@compute-system.iam.gserviceaccount.com"}"]
+  members = ["serviceAccount:${var.compute_engine_service_account}"]
   
 
   depends_on = [ google_kms_crypto_key.vm-key ]
@@ -622,7 +622,7 @@ data "google_storage_project_service_account" "gcs" {
 resource "google_kms_crypto_key_iam_binding" "crypto_key_sb" {
    provider      = google
   crypto_key_id = google_kms_crypto_key.sb-key.id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  role          = var.kms_role
 
   members = [
     "serviceAccount:${data.google_storage_project_service_account.gcs.email_address}"
@@ -634,7 +634,7 @@ resource "google_kms_crypto_key_iam_binding" "crypto_key_sb" {
 resource "google_kms_crypto_key_iam_binding" "crypto_key_sql" {
   provider      = google
   crypto_key_id = google_kms_crypto_key.sql-key.id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  role          = var.kms_role
 
   members = [
     "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
@@ -642,7 +642,7 @@ resource "google_kms_crypto_key_iam_binding" "crypto_key_sql" {
   depends_on = [ google_kms_crypto_key.sql-key ]
 }
 resource "google_secret_manager_secret" "sql_password" {
-  secret_id = "sql-password"
+  secret_id = var.sql_password_secret_id
   replication {
     user_managed {
       replicas {
@@ -658,7 +658,7 @@ resource "google_secret_manager_secret_version" "sql_password_version" {
 }
  
 resource "google_secret_manager_secret" "sql_instance_ip" {
-  secret_id = "sql-instance-ip"
+  secret_id = var.sql_instance_secret_id
  
  replication {
     user_managed {
@@ -675,7 +675,7 @@ resource "google_secret_manager_secret_version" "sql_instance_ip_version" {
 }
  
 resource "google_secret_manager_secret" "sql_user" {
-  secret_id = "sql-user"
+  secret_id = var.sql_user_secret_id
   replication {
     user_managed {
       replicas {
@@ -691,7 +691,7 @@ resource "google_secret_manager_secret_version" "sql_user_version" {
 }
  
 resource "google_secret_manager_secret" "sql_database" {
-  secret_id = "sql-database"
+  secret_id = var.sql_database_secret_id
   replication {
     user_managed {
       replicas {
@@ -707,7 +707,7 @@ resource "google_secret_manager_secret_version" "sql_database_version" {
 }
  
 resource "google_secret_manager_secret" "sql_port" {
-  secret_id = "sql-port"
+  secret_id = var.sql_port_secret_id
   replication {
     user_managed {
       replicas {
