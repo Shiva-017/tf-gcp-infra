@@ -386,7 +386,7 @@ variable "allow_proxy_fw_network_direction" {
 }
 
 variable "fw_target_tags" {
-  type = list(string)
+  type = string
 }
 
 variable "allow_proxy_fw_priority" {
@@ -482,5 +482,13 @@ variable "instance_template_desc" {
 }
 
 variable "on_host_maintenance" {
+  type = string
+}
+
+variable "service_account" {
+  type = string
+}
+
+variable "sb_account_id" {
   type = string
 }

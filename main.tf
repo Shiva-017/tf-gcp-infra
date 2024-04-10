@@ -4,6 +4,12 @@ provider "google" {
   credentials = var.cred_file
 }
 
+provider "google-beta" {
+  project     = var.project_id
+  region      = var.region
+  credentials = var.cred_file
+}
+
 resource "google_compute_network" "vpc" {
   provider                        = google
   project = var.project_id
@@ -44,6 +50,7 @@ resource "google_service_account" "webapp_service_account" {
   account_id   = var.monitoring_account_id
   display_name = "WebApp Monitoring Service Account"
 }
+
 
 resource "google_project_iam_binding" "monitoring_logs_binding" {
   project = var.project_id
@@ -108,7 +115,7 @@ resource "google_project_iam_member" "webapp_service_account_monitoring_metric_w
 
 #   allow {
 #     protocol = var.protocol
-#     ports    = [var.app_port]
+#     ports    = [var.app_port, var.ssh_port]
 #   }
 
 #   source_ranges = [var.route_dest]
@@ -148,6 +155,10 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   deletion_policy         = var.deletion_policy
 }
 
+resource "google_project_service_identity" "gcp_sa_cloud_sql" {
+  provider = google-beta
+  service  = "sqladmin.googleapis.com"
+}
 
 
 # Cloud SQL instance
@@ -172,9 +183,11 @@ resource "google_sql_database_instance" "default" {
       transaction_log_retention_days = var.tlr_days
     }
   }
+  encryption_key_name = google_kms_crypto_key.sql-key.id
   depends_on = [
     google_compute_global_address.default,
-    google_service_networking_connection.private_vpc_connection
+    google_service_networking_connection.private_vpc_connection,
+    google_kms_crypto_key_iam_binding.crypto_key_sql
   ]
 }
 
@@ -299,8 +312,13 @@ resource "random_id" "bucket_suffix" {
 }
 resource "google_storage_bucket" "function_source_bucket" {
   name     = "${var.storage_bucket_name}-${random_id.bucket_suffix.hex}"
-  location = "US"
+  location = var.region
+  encryption {
+    default_kms_key_name = google_kms_crypto_key.sb-key.id
+  }
+  depends_on = [ google_kms_crypto_key_iam_binding.crypto_key_sb ]
 }
+
 
 resource "google_storage_bucket_object" "function_source_zip" {
   name   = var.storage_object_name
@@ -358,7 +376,7 @@ resource "google_compute_region_instance_template" "default" {
   provider = google
   project = var.project_id
 
-  tags = var.fw_target_tags
+  tags = [var.fw_target_tags]
   machine_type         = var.machine_type
   # can_ip_forward       = false
   region = var.region
@@ -374,6 +392,9 @@ resource "google_compute_region_instance_template" "default" {
     disk_type   = var.disk_type
     disk_size_gb = var.size
     source_image = var.image_name
+    disk_encryption_key {
+      kms_key_self_link = google_kms_crypto_key.vm-key.id
+    }
   }
 
   network_interface {
@@ -398,8 +419,10 @@ resource "google_compute_region_instance_template" "default" {
   lifecycle {
     create_before_destroy = true
   }
-
-  depends_on = [ random_password.password, google_sql_database.webapp, google_compute_address.static_ip ]
+  
+  depends_on = [ random_password.password, google_sql_database.webapp, google_compute_address.static_ip,
+   google_kms_crypto_key_iam_binding.crypto_key_vm
+    ]
 }
 
 
@@ -470,7 +493,7 @@ resource "google_compute_firewall" "default" {
   network       = google_compute_network.vpc.id
   priority      = var.default_fw_priority
   source_ranges = var.default_fw_source_range
-  target_tags   = var.fw_target_tags
+  target_tags   = [var.fw_target_tags]
 }
 
 resource "google_compute_firewall" "allow_proxy" {
@@ -487,7 +510,7 @@ resource "google_compute_firewall" "allow_proxy" {
   network       = google_compute_network.vpc.id
   priority      = var.allow_proxy_fw_priority
   source_ranges = var.allow_proxy_fw_source_range
-  target_tags   = var.fw_target_tags
+  target_tags   = [var.fw_target_tags]
 }
 
 resource "google_compute_region_backend_service" "webapp_backend_service" {
@@ -548,4 +571,153 @@ resource "google_compute_subnetwork" "proxy" {
   network       = google_compute_network.vpc.id
   purpose       = var.subnetwork_proxy_purpose
   role          = var.subnetwork_proxy_role
+}
+
+resource "google_kms_key_ring" "keyring" {
+  name     = "keyring-09"
+  location = var.region
+}
+ 
+resource "google_kms_crypto_key" "vm-key" {
+  name            = "VM-CMEK"
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = "2592000s"
+   lifecycle {
+    prevent_destroy = true
+  }
+}
+ 
+ 
+resource "google_kms_crypto_key" "sb-key" {
+  name            = "SB-CMEK"
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = "2592000s"
+   lifecycle {
+    prevent_destroy = true
+  }
+}
+ 
+resource "google_kms_crypto_key" "sql-key" {
+  name            = "SQL-CMEK"
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = "2592000s"
+   lifecycle {
+    prevent_destroy = true
+  }
+ 
+}
+
+resource "google_kms_crypto_key_iam_binding" "crypto_key_vm" {
+  crypto_key_id = google_kms_crypto_key.vm-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = ["serviceAccount:${"service-1040902669763@compute-system.iam.gserviceaccount.com"}"]
+  
+
+  depends_on = [ google_kms_crypto_key.vm-key ]
+}
+
+data "google_storage_project_service_account" "gcs" {
+}
+resource "google_kms_crypto_key_iam_binding" "crypto_key_sb" {
+   provider      = google
+  crypto_key_id = google_kms_crypto_key.sb-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = [
+    "serviceAccount:${data.google_storage_project_service_account.gcs.email_address}"
+  ]
+}
+
+
+
+resource "google_kms_crypto_key_iam_binding" "crypto_key_sql" {
+  provider      = google
+  crypto_key_id = google_kms_crypto_key.sql-key.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+
+  members = [
+    "serviceAccount:${google_project_service_identity.gcp_sa_cloud_sql.email}",
+  ]
+  depends_on = [ google_kms_crypto_key.sql-key ]
+}
+resource "google_secret_manager_secret" "sql_password" {
+  secret_id = "sql-password"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+  }
+}
+}
+ 
+resource "google_secret_manager_secret_version" "sql_password_version" {
+  secret      = google_secret_manager_secret.sql_password.id
+  secret_data = random_password.password.result
+}
+ 
+resource "google_secret_manager_secret" "sql_instance_ip" {
+  secret_id = "sql-instance-ip"
+ 
+ replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+  }
+}
+}
+ 
+resource "google_secret_manager_secret_version" "sql_instance_ip_version" {
+  secret      = google_secret_manager_secret.sql_instance_ip.id
+  secret_data = google_sql_database_instance.default.private_ip_address
+}
+ 
+resource "google_secret_manager_secret" "sql_user" {
+  secret_id = "sql-user"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+  }
+}
+}
+ 
+resource "google_secret_manager_secret_version" "sql_user_version" {
+  secret      = google_secret_manager_secret.sql_user.id
+  secret_data = var.db_user
+}
+ 
+resource "google_secret_manager_secret" "sql_database" {
+  secret_id = "sql-database"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+  }
+}
+}
+ 
+resource "google_secret_manager_secret_version" "sql_database_version" {
+  secret      = google_secret_manager_secret.sql_database.id
+  secret_data = var.db_name
+}
+ 
+resource "google_secret_manager_secret" "sql_port" {
+  secret_id = "sql-port"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+  }
+}
+}
+ 
+resource "google_secret_manager_secret_version" "sql_port_version" {
+  secret      = google_secret_manager_secret.sql_port.id
+  secret_data = var.db_port
 }
